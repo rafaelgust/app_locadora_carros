@@ -13,4 +13,21 @@ class Marca extends Model
         'nome',
         'imagem',
     ];
+
+    public function rules(): array
+    {
+        return [
+            'nome' => 'required|string|max:255',
+            'imagem' => 'required'
+        ];
+    }
+
+    public function feedback(): array
+    {
+        return [
+            'required' => 'O campo :attribute é obrigatório.',
+            'nome.max' => 'O campo nome deve ter no máximo 255 caracteres.',
+            'imagem.required' => 'O campo imagem é obrigatório.'
+        ];
+    }
 }

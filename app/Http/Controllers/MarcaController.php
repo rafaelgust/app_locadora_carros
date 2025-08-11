@@ -27,13 +27,11 @@ class MarcaController extends Controller
      */
     public function store(Request $request)
     {
+
         try {
-            $request->validate([
-                'nome' => 'required|string|max:255',
-                //'imagem' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
+            $request->validate($this->marca->rules(), $this->marca->feedback());
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json(['error' => $e->errors()], 422);
         }
 
         $exists = $this->marca->where('nome', $request->nome)->exists();
@@ -68,14 +66,11 @@ class MarcaController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, int $id)
-    {
+    {  
         try {
-            $request->validate([
-                'nome' => 'required|string|max:255',
-                //'imagem' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
+            $request->validate($this->marca->rules(), $this->marca->feedback());
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json(['error' => $e->errors()], 422);
         }
 
         $marca = $this->marca->find($id);
