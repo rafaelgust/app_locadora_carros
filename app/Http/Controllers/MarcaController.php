@@ -12,7 +12,7 @@ class MarcaController extends Controller
      */
     public function index()
     {
-        //
+        return Marca::all();
     }
 
     /**
@@ -28,7 +28,27 @@ class MarcaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $request->validate([
+                'nome' => 'required|string|max:255',
+                //'imagem' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        }
+
+        $exists = Marca::where('nome', $request->nome)->exists();
+
+        if ($exists) {
+            return response()->json(['error' => 'Marca já existe.'], 409);
+        }
+
+        $marca = new Marca();
+        $marca->nome = $request->nome;
+        $marca->imagem = $request->imagem;
+        $marca->save();
+
+        return response()->json($marca, 201);
     }
 
     /**
@@ -36,7 +56,11 @@ class MarcaController extends Controller
      */
     public function show(Marca $marca)
     {
-        //
+        if (!$marca) {
+            return response()->json(['error' => 'Marca não encontrada.'], 404);
+        }
+
+        return response()->json($marca, 200);
     }
 
     /**
@@ -52,7 +76,20 @@ class MarcaController extends Controller
      */
     public function update(Request $request, Marca $marca)
     {
-        //
+        try {
+            $request->validate([
+                'nome' => 'required|string|max:255',
+                //'imagem' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        }
+
+        $marca->nome = $request->nome;
+        $marca->imagem = $request->imagem;
+        $marca->save();
+
+        return response()->json($marca, 200);
     }
 
     /**
@@ -60,6 +97,12 @@ class MarcaController extends Controller
      */
     public function destroy(Marca $marca)
     {
-        //
+        if (!$marca) {
+            return response()->json(['error' => 'Marca não encontrada.'], 404);
+        }
+
+        $marca->delete();
+
+        return response()->json(['message' => 'Marca deletada com sucesso.'], 200);
     }
 }
