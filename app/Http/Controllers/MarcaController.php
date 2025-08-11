@@ -7,21 +7,20 @@ use Illuminate\Http\Request;
 
 class MarcaController extends Controller
 {
+    protected $marca;
+
+    public function __construct(Marca $marca)
+    {
+        $this->marca = $marca;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return Marca::all();
+        return $this->marca->all();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -37,13 +36,13 @@ class MarcaController extends Controller
             return response()->json(['errors' => $e->errors()], 422);
         }
 
-        $exists = Marca::where('nome', $request->nome)->exists();
+        $exists = $this->marca->where('nome', $request->nome)->exists();
 
         if ($exists) {
             return response()->json(['error' => 'Marca já existe.'], 409);
         }
 
-        $marca = new Marca();
+        $marca = $this->marca;
         $marca->nome = $request->nome;
         $marca->imagem = $request->imagem;
         $marca->save();
@@ -54,8 +53,10 @@ class MarcaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Marca $marca)
+    public function show(int $id)
     {
+        $marca = $this->marca->find($id);
+
         if (!$marca) {
             return response()->json(['error' => 'Marca não encontrada.'], 404);
         }
@@ -64,17 +65,9 @@ class MarcaController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Marca $marca)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Marca $marca)
+    public function update(Request $request, int $id)
     {
         try {
             $request->validate([
@@ -83,6 +76,12 @@ class MarcaController extends Controller
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
+        }
+
+        $marca = $this->marca->find($id);
+
+        if (!$marca) {
+            return response()->json(['error' => 'Marca não encontrada.'], 404);
         }
 
         $marca->nome = $request->nome;
@@ -95,8 +94,10 @@ class MarcaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Marca $marca)
+    public function destroy(int $id)
     {
+        $marca = $this->marca->find($id);
+
         if (!$marca) {
             return response()->json(['error' => 'Marca não encontrada.'], 404);
         }
