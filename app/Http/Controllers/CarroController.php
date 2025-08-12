@@ -153,11 +153,6 @@ class CarroController extends Controller
 
         $placa = $carro->placa;
 
-        $isRemoved = $this->removeImagem($carro->imagem);
-        if (!$isRemoved) {
-            return response()->json(['error' => 'Falha ao remover a imagem.'], 500);
-        }
-
         $carro->delete();
 
         return response()->json(['message' => 'Carro ' . $placa . ' removido com sucesso.'], 200);
