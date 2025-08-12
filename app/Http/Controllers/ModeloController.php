@@ -40,7 +40,14 @@ class ModeloController extends Controller
      */
     public function index()
     {
-        return response()->json($this->modelo->all());
+        $modelo = $this->modelo::with('marca')
+            ->select([
+                'id', 'nome', 'imagem', 'marca_id',
+                'numero_portas', 'lugares', 'air_bag', 'abs'
+            ])
+            ->get();
+
+        return response()->json($modelo);
     }
 
     /**
@@ -75,7 +82,12 @@ class ModeloController extends Controller
      */
     public function show(int $id)
     {
-        $modelo = Modelo::find($id);
+        $modelo = $this->modelo::with('marca')->find($id)
+            ->only(
+                [
+                    'id', 'nome', 'imagem', 'marca',
+                    'numero_portas', 'lugares', 'air_bag', 'abs'
+                ]);
         if (!$modelo) {
             return response()->json(['error' => 'Modelo não encontrado.'], 404);
         }
