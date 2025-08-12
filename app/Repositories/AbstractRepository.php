@@ -16,13 +16,25 @@ abstract class AbstractRepository {
 
     public function selectAtributosRegistrosRelacionados(string $tabela, string $identificador, $atributos = null)
     {
-        if($atributos === null){
-            $this->model = $this->model->with(''.$tabela.':'.$identificador);
+        // Se não houver atributos, apenas carrega o relacionamento completo
+        if ($atributos === null || trim($atributos) === '') {
+            $this->model = $this->model->with($tabela);
+            return;
         }
 
-        $atributos = array_map('trim', explode(',', $atributos));
+        // Transforma em array, remove espaços e vazios
+        $atributos = array_filter(array_map('trim', explode(',', $atributos)));
 
-        $this->model = $this->model->with(''.$tabela.':'.$identificador.',' . implode(',', $atributos));
+        // Sempre inclui o identificador (ex: id)
+        if (!in_array($identificador, $atributos)) {
+            array_unshift($atributos, $identificador);
+        }
+
+        // Garante que não há elementos vazios
+        $atributos = array_filter($atributos);
+
+        // Monta a string corretamente
+        $this->model = $this->model->with($tabela . ':' . implode(',', $atributos));
     }
 
     public function selectAtributos(string $atributos)
