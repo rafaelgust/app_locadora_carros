@@ -16,7 +16,7 @@ class Cliente extends Model
     public function rules($id = null): array
     {
         return [
-            'nome' => 'required|string|max:30'
+            'nome' => 'required|string|max:30|unique:clientes,nome,' . $id
         ];
     }
 

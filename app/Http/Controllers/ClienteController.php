@@ -3,24 +3,40 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
+use App\Repositories\ClientRepository;
 use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected $cliente;
+
+    public function __construct(Cliente $cliente)
     {
-        //
+        $this->cliente = $cliente;
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display a listing of the resource.
      */
-    public function create()
+    public function index(Request $request)
     {
-        //
+        $clienteRepository = new ClientRepository($this->cliente);
+
+        if($request->filled('atributo_locacoes')) {
+            $clienteRepository->selectAtributosRegistrosRelacionados('locacoes', 'id', $request->atributo_locacoes);
+        } else {
+            $clienteRepository->selectAtributosRegistrosRelacionados('locacoes', 'id');
+        }
+
+        if($request->filled('atributos')) {
+            $clienteRepository->selectAtributos($request->atributos);
+        }
+                
+        if($request->filled('filtro')) {
+            $clienteRepository->filtrarRegistros($request->filtro);
+        }
+
+        return response()->json($clienteRepository->getResult());
     }
 
     /**
@@ -28,38 +44,109 @@ class ClienteController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate($this->cliente->rules(), $this->cliente->feedback());
+
+        $cliente = Cliente::create([
+            'nome' => $request->nome,
+        ]);
+
+        return response()->json($cliente, 201);
     }
+
 
     /**
      * Display the specified resource.
      */
-    public function show(Cliente $cliente)
+    public function show(Request $request, $id)
     {
-        //
-    }
+        $filtroClientes = $this->cliente->getFillable();
+        $filtroLocacoes = [];
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Cliente $cliente)
-    {
-        //
+        if ($request->has('atributos')) {
+            $atributos = explode(',', $request->get('atributos'));
+            $filtroClientes = $atributos;
+        }
+
+        if ($request->has('atributo_locacoes')) {
+            $atributo_locacoes = explode(',', $request->get('atributo_locacoes'));
+            $filtroLocacoes = $atributo_locacoes;
+        }
+
+        $cliente = $this->cliente->with(['locacoes' => function($query) use ($filtroLocacoes) {
+            if (!empty($filtroLocacoes)) {
+                $query->select($filtroLocacoes);
+            }
+        }])->select($filtroClientes)->find($id);
+
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente não encontrado.'], 404);
+        }
+
+        return response()->json($cliente, 200);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Cliente $cliente)
+    public function update(Request $request, int $id)
     {
-        //
+        $cliente = Cliente::find($id);
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente não encontrado.'], 404);
+        }
+
+        if ($request->isMethod('patch')) {
+            // Regras dinâmicas para PATCH
+            $regrasDinamicas = [];
+            foreach ($this->cliente->rules($cliente->id) as $field => $rule) {
+            if ($request->has($field)) {
+                $regrasDinamicas[$field] = $rule;
+            }
+            }
+
+            if (empty($regrasDinamicas)) {
+            return response()->json(['error' => 'Nenhum campo para atualizar.'], 422);
+            }
+
+            $request->validate($regrasDinamicas, $this->cliente->feedback());
+
+            // Atualiza apenas os campos enviados na requisição
+            $dadosAtualizados = $request->only(array_keys($regrasDinamicas));
+
+            // Atualiza os campos no modelo
+            $cliente->fill($dadosAtualizados);
+            $cliente->save();
+
+            return response()->json($cliente, 200);
+
+        } elseif ($request->isMethod('put')) {
+            $request->validate($this->cliente->rules($cliente->id), $this->cliente->feedback());
+
+            $cliente->nome = $request->nome;
+
+            $cliente->save();
+
+            return response()->json($cliente, 200);
+
+        } else {
+            return response()->json(['error' => 'Método não permitido.'], 405);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Cliente $cliente)
+    public function destroy(int $id)
     {
-        //
+        $cliente = Cliente::find($id);
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente não encontrado.'], 404);
+        }
+
+        $nome = $cliente->nome;
+
+        $cliente->delete();
+
+        return response()->json(['message' => 'Cliente ' . $nome . ' foi removido com sucesso.'], 200);
     }
 }
