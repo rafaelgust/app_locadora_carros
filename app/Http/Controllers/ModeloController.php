@@ -45,7 +45,7 @@ class ModeloController extends Controller
 
         $modelos = $this->modelo->newQuery();
 
-        if($request->has('atributos_marca')) {
+        if($request->filled('atributos_marca')) {
             $atributos_marca = $request->get('atributos_marca');
             // array_map('trim', explode(',', $atributos)); evitar espaço
             $atributos_marca = array_map('trim', explode(',', $atributos_marca));
@@ -55,7 +55,7 @@ class ModeloController extends Controller
             $modelos = $modelos->with('marca:id,' . implode(',', $filtroMarcas));
         }
 
-        if($request->has('atributos')) {
+        if($request->filled('atributos')) {
             $atributos = $request->get('atributos');
             // array_map('trim', explode(',', $atributos)); evitar espaço
             $atributos = array_map('trim',  explode(',', $atributos));
@@ -64,9 +64,9 @@ class ModeloController extends Controller
             $modelos = $modelos->select($filtroModelos);
         }
                 
-        if($request->has('filtro')) {
+        if($request->filled('filtro')) {
             $completo = $request->filtro;
-            $separarMultiplosFiltros = explode(';', string: $completo);
+            $separarMultiplosFiltros = explode(';',  $completo);
 
             foreach ($separarMultiplosFiltros as $filtro) {
                 $separar = explode(':', $filtro);
@@ -88,7 +88,7 @@ class ModeloController extends Controller
 
         $modelos = $modelos->get();
 
-       return response()->json($modelos);
+        return response()->json($modelos);
     }
 
     /**

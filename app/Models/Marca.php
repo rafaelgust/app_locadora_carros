@@ -42,6 +42,6 @@ class Marca extends Model
 
     public function modelos()
     {
-        return $this->hasMany(Modelo::class)->select(['id', 'nome', 'imagem', 'marca_id']);
+        return $this->hasMany(Modelo::class);
     }
 }
