@@ -31,14 +31,16 @@ class MarcaController extends Controller
         $request->validate( $this->marca->rules(), $this->marca->feedback());
 
         $exists = $this->marca->where('nome', $request->nome)->exists();
-
         if ($exists) {
             return response()->json(['error' => 'Marca já existe.'], 409);
         }
 
+        $image = $request->file('imagem'); // pega a imagem
+        $imagem_urn = $image->store('imagens/marcas', 'public');
+
         $marca = $this->marca;
         $marca->nome = $request->nome;
-        $marca->imagem = $request->imagem;
+        $marca->imagem = $imagem_urn; // diretorio e nome do arquivo
         $marca->save();
 
         return response()->json($marca, 201);
