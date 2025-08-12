@@ -23,10 +23,10 @@ class Modelo extends Model
     {
         return [
             'marca_id' => 'required|exists:marcas,id',
-            'nome' => 'required|string|max:50',
+            'nome' => 'required|string|max:30|min:3|unique:modelos,nome,'.$id,
             'imagem' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'numero_portas' => 'required|integer|min:2|max:5',
-            'lugares' => 'required|integer|min:2|max:7',
+            'numero_portas' => 'required|integer|digits_between:1,5',
+            'lugares' => 'required|integer|digits_between:1,20',
             'air_bag' => 'required|boolean',
             'abs' => 'required|boolean',
         ];
@@ -38,13 +38,12 @@ class Modelo extends Model
             'required' => 'O campo :attribute é obrigatório.',
             'marca_id.exists' => 'A marca selecionada não é válida.',
             'nome.max' => 'O campo nome deve ter no máximo 50 caracteres.',
-            'imagem.required' => 'O campo imagem é obrigatório.',
-            'numero_portas.min' => 'O campo número de portas deve ter no mínimo 2.',
+            'numero_portas.min' => 'O campo número de portas deve ter no mínimo 1.',
             'numero_portas.max' => 'O campo número de portas deve ter no máximo 5.',
-            'lugares.min' => 'O campo lugares deve ter no mínimo 2.',
-            'lugares.max' => 'O campo lugares deve ter no máximo 7.',
-            'air_bag.required' => 'O campo air bag é obrigatório.',
-            'abs.required' => 'O campo abs é obrigatório.'
+            'lugares.min' => 'O campo lugares deve ter no mínimo 1.',
+            'lugares.max' => 'O campo lugares deve ter no máximo 20.',
+            'air_bag.boolean' => 'O campo air bag deve ser verdadeiro ou falso.',
+            'abs.boolean' => 'O campo abs deve ser verdadeiro ou falso.'
         ];
     }
 
