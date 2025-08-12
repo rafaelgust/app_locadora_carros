@@ -39,7 +39,9 @@ class MarcaController extends Controller
      */
     public function index()
     {
-        return $this->marca->all();
+        return $this->marca->with('modelos')
+            ->select(['id', 'nome', 'imagem'])
+            ->get();
     }
 
 
@@ -71,7 +73,9 @@ class MarcaController extends Controller
      */
     public function show(int $id)
     {
-        $marca = $this->marca->find($id);
+        $marca = $this->marca->with('modelos')
+            ->select(['id', 'nome', 'imagem'])
+            ->find($id);
 
         if (!$marca) {
             return response()->json(['error' => 'Marca não encontrada.'], 404);
