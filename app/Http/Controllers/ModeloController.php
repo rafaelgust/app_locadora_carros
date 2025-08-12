@@ -43,23 +43,45 @@ class ModeloController extends Controller
         $filtroModelos = array('id', 'marca_id', 'nome', 'imagem', 'numero_portas', 'lugares', 'air_bag', 'abs');
         $filtroMarcas = array('nome', 'imagem');
 
-        if($request->has('atributos')) {
-            $atributos = $request->get('atributos');
-            $atributos = explode(',', $atributos);
-
-            $filtroModelos = $atributos;
-        }
+         $modelos = $this->modelo->with('marca:id,' . implode(',', $filtroMarcas))
+                ->select($filtroModelos);
 
         if($request->has('atributos_marca')) {
             $atributos_marca = $request->get('atributos_marca');
             $atributos_marca = explode(',', $atributos_marca);
 
             $filtroMarcas = $atributos_marca;
+
+            $modelos = $modelos->with('marca:id,' . implode(',', $filtroMarcas));
         }
 
-        $modelos = $this->modelo->with('marca:id,' . implode(',', $filtroMarcas))
-                ->select($filtroModelos)
-                ->get();
+        if($request->has('atributos')) {
+            $atributos = $request->get('atributos');
+            $atributos = explode(',', $atributos);
+
+            $filtroModelos = $atributos;
+            $modelos = $modelos->select($filtroModelos);
+        }
+                
+        if($request->has('filtro')) {
+            $completo = $request->filtro;
+            $separar = explode(':', $completo);
+            
+            $coluna = $separar[0] ?? null;
+            $operador = $separar[1] ?? null;
+            $valor = $separar[2] ?? null;
+
+            if(!in_array($coluna, $filtroModelos)
+                OR !in_array($operador, ['=', '!=', '>', '<', '>=', '<=', 'like'])
+                OR is_null($valor)
+            ) {
+                return response()->json(['error' => 'Filtro inválido.'], 400);
+            }
+
+            $modelos = $modelos->where($coluna, $operador, $valor);
+        }
+
+        $modelos = $modelos->get();
 
        return response()->json($modelos);
     }
