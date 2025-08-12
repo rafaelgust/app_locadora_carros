@@ -38,8 +38,19 @@ class ModeloController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+
+        if($request->has('atributos')) {
+            $atributos = $request->get('atributos');
+            $atributos = explode(',', $atributos);
+            return $this->modelo->with('marca')
+                ->select($atributos)
+                ->get();
+
+        // /api/modelo?atributos=id,nome,marca_id
+        }
+
         $modelo = $this->modelo::with('marca')
             ->select([
                 'id', 'nome', 'imagem', 'marca_id',
