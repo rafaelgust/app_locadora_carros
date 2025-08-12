@@ -9,8 +9,6 @@ class MarcaRepository {
     protected $model;
 
     private array $filtroMarcas = array('id', 'nome', 'imagem');
-    private array $filtroModelos = array('nome', 'imagem', 'numero_portas', 'lugares', 'air_bag', 'abs');
-
 
     public function __construct(Model $model){
         $this->model = $model;
@@ -19,9 +17,8 @@ class MarcaRepository {
     public function selectAtributosRegistrosRelacionados(string $tabela, string $identificador, string $atributos)
     {
         $atributos_modelos = array_map('trim', explode(',', $atributos));
-        $filtroModelos = $atributos_modelos;
 
-        $this->model = $this->model->with(''.$tabela.':'.$identificador.',' . implode(',', $filtroModelos));
+        $this->model = $this->model->with(''.$tabela.':'.$identificador.',' . implode(',', $atributos_modelos));
     }
 
     public function selectAtributos(string $atributos)
