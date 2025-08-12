@@ -9,6 +9,16 @@ class MarcaController extends Controller
 {
     protected $marca;
 
+    protected function uploadImagem(Request $request): string
+    {
+        try {
+            $image = $request->file('imagem');
+            return $image->store('imagens/marcas', 'public');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Falha ao fazer upload da imagem.'], 500);
+        }
+    }
+
     public function __construct(Marca $marca)
     {
         $this->marca = $marca;
@@ -35,8 +45,7 @@ class MarcaController extends Controller
             return response()->json(['error' => 'Marca já existe.'], 409);
         }
 
-        $image = $request->file('imagem'); // pega a imagem
-        $imagem_urn = $image->store('imagens/marcas', 'public');
+        $imagem_urn = $this->uploadImagem($request);
 
         $marca = $this->marca;
         $marca->nome = $request->nome;
@@ -65,6 +74,10 @@ class MarcaController extends Controller
      */
     public function update(Request $request, int $id)
     {  
+        // PARA QUE O UPLOAD DA IMG DÊ CERTO, É PRECISO ADICIONAR
+        // _method -> put COMO UM PARAMETRO ENCAMINHADO VIA POST
+        // NA REQUISIÇÃO, POIS O LARAVEL NÃO PEGA O FORM-DATA COM PUT E PATCH
+
         $marca = $this->marca->find($id);
 
         if (!$marca) {
@@ -72,31 +85,51 @@ class MarcaController extends Controller
         }
 
         if ($request->isMethod('patch')) {
-            // Regras dinâmicas para o método PATCH
-            $regrasDinamicas = array();
-
-            foreach ($this->marca->rules() as $field => $rule) {
-                if ($request->has($field)) {
-                    $regrasDinamicas[$field] = $rule;
-                }
+            // Regras dinâmicas para PATCH
+            $regrasDinamicas = [];
+            foreach ($this->marca->rules($id) as $field => $rule) {
+            if ($request->has($field)) {
+                $regrasDinamicas[$field] = $rule;
             }
-            // Validação das regras dinâmicas, apenas os parâmetros que tem no request
-            if (!empty($regrasDinamicas)) {
-                $request->validate($regrasDinamicas, $this->marca->feedback());
-
-                // Preenche os atributos do modelo $marca apenas com os dados do request que correspondem às chaves definidas em $regrasDinamicas
-                $marca->fill($request->only(array_keys($regrasDinamicas)));
-            } else {
-                return response()->json(['error' => 'Nenhum campo para atualizar.'], 422);
             }
+
+            if (empty($regrasDinamicas) && !$request->hasFile('imagem')) {
+            return response()->json(['error' => 'Nenhum campo para atualizar.'], 422);
+            }
+
+            $request->validate($regrasDinamicas, $this->marca->feedback());
+
+            // Atualiza apenas os campos enviados na requisição
+            $dadosAtualizados = $request->only(array_keys($regrasDinamicas));
+
+            // Se houver upload de imagem, processa e atualiza o campo
+            if ($request->hasFile('imagem')) {
+                $imagem_urn = $this->uploadImagem($request);
+                $dadosAtualizados['imagem'] = $imagem_urn;
+            }
+
+            // Atualiza os campos no modelo
+            $marca->fill($dadosAtualizados);
+            $marca->save();
+
+            return response()->json($marca, 200);
+
+        } elseif ($request->isMethod('put')) {
+            $request->validate($this->marca->rules($id), $this->marca->feedback());
+
+            $marca->nome = $request->nome;
+
+            if ($request->hasFile('imagem')) {
+            $marca->imagem = $this->uploadImagem($request);
+            }
+
+            $marca->save();
+
+            return response()->json($marca, 200);
 
         } else {
-            $request->validate($this->marca->rules(), $this->marca->feedback());
+            return response()->json(['error' => 'Método não permitido.'], 405);
         }
-
-        $marca->save();
-
-        return response()->json($marca, 200);
     }
 
     /**

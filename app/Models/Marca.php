@@ -14,10 +14,10 @@ class Marca extends Model
         'imagem',
     ];
 
-    public function rules(): array
+    public function rules($id = null): array
     {
         return [
-            'nome' => 'required|unique:marcas,nome,'.$this->id.'|string|max:50',
+            'nome' => 'required|unique:marcas,nome,'.$id.'|string|max:50',
             'imagem' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ];
 
