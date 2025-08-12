@@ -40,15 +40,20 @@ class ModeloController extends Controller
      */
     public function index(Request $request)
     {
-
         if($request->has('atributos')) {
             $atributos = $request->get('atributos');
             $atributos = explode(',', $atributos);
-            return $this->modelo->with('marca')
+
+            $atributos_marca = $request->get('atributos_marca');
+            $atributos_marca = explode(',', $atributos_marca);
+
+            return $this->modelo->with('marca:id,' . implode(',', $atributos_marca))
                 ->select($atributos)
                 ->get();
 
         // /api/modelo?atributos=id,nome,marca_id
+
+        // /api/modelo?atributos=id,nome,marca_id&atributos_marca=nome
         }
 
         $modelo = $this->modelo::with('marca')

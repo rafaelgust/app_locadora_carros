@@ -49,7 +49,7 @@ class Modelo extends Model
 
     public function marca()
     {
-        return $this->belongsTo(Marca::class)->select(['id', 'nome', 'imagem']);
+        return $this->belongsTo(Marca::class);
     }
 
     public function carro()
