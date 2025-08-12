@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Marca;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MarcaController extends Controller
 {
@@ -17,6 +18,16 @@ class MarcaController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Falha ao fazer upload da imagem.'], 500);
         }
+    }
+
+    protected function removeImagem(string $imagemPath): bool
+    {
+        try {
+            Storage::disk('public')->delete($imagemPath);
+        } catch (\Exception $e) {
+            return false;
+        }
+        return true;
     }
 
     public function __construct(Marca $marca)
@@ -104,6 +115,12 @@ class MarcaController extends Controller
 
             // Se houver upload de imagem, processa e atualiza o campo
             if ($request->hasFile('imagem')) {
+                $isRemoved = $this->removeImagem($marca->imagem);
+                // Removendo a imagem antiga
+                if (!$isRemoved) {
+                    return response()->json(['error' => 'Falha ao atualizar a imagem.'], 500);
+                }
+                // Atualizando para a imagem nova
                 $imagem_urn = $this->uploadImagem($request);
                 $dadosAtualizados['imagem'] = $imagem_urn;
             }
@@ -143,8 +160,15 @@ class MarcaController extends Controller
             return response()->json(['error' => 'Marca não encontrada.'], 404);
         }
 
+        $nome = $marca->nome;
+
+        $isRemoved = $this->removeImagem($marca->imagem);
+        if (!$isRemoved) {
+            return response()->json(['error' => 'Falha ao remover a imagem.'], 500);
+        }
+
         $marca->delete();
 
-        return response()->json(['message' => 'Marca deletada com sucesso.'], 200);
+        return response()->json(['message' => 'Marca '.$nome.' foi deletada com sucesso.'], 200);
     }
 }
