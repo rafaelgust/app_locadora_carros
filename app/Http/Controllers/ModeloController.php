@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Modelo;
+use App\Repositories\ModeloRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -40,55 +41,23 @@ class ModeloController extends Controller
      */
     public function index(Request $request)
     {
-        $filtroModelos = array('id', 'marca_id', 'nome', 'imagem', 'numero_portas', 'lugares', 'air_bag', 'abs');
-        $filtroMarcas = array('nome', 'imagem');
-
-        $modelos = $this->modelo->newQuery();
+        $modeloRepository = new ModeloRepository($this->modelo);
 
         if($request->filled('atributos_marca')) {
-            $atributos_marca = $request->get('atributos_marca');
-            // array_map('trim', explode(',', $atributos)); evitar espaço
-            $atributos_marca = array_map('trim', explode(',', $atributos_marca));
-
-            $filtroMarcas = $atributos_marca;
-
-            $modelos = $modelos->with('marca:id,' . implode(',', $filtroMarcas));
+            $modeloRepository->selectAtributosRegistrosRelacionados('marca', 'id', $request->atributos_marca);
+        } else {
+            $modeloRepository->selectAtributosRegistrosRelacionados('marca', 'id');
         }
 
         if($request->filled('atributos')) {
-            $atributos = $request->get('atributos');
-            // array_map('trim', explode(',', $atributos)); evitar espaço
-            $atributos = array_map('trim',  explode(',', $atributos));
-
-            $filtroModelos = $atributos;
-            $modelos = $modelos->select($filtroModelos);
+            $modeloRepository->selectAtributos($request->atributos);
         }
                 
         if($request->filled('filtro')) {
-            $completo = $request->filtro;
-            $separarMultiplosFiltros = explode(';',  $completo);
-
-            foreach ($separarMultiplosFiltros as $filtro) {
-                $separar = explode(':', $filtro);
-
-                $coluna = trim($separar[0]);
-                $operador = trim($separar[1]);
-                $valor = $separar[2];
-
-                if(!in_array($coluna, $filtroModelos)
-                    OR !in_array($operador, ['=', '!=', '>', '<', '>=', '<=', 'like'])
-                    OR is_null($valor)
-                ) {
-                    return response()->json(['error' => 'Filtro inválido.'], 400);
-                } else {
-                    $modelos = $modelos->where($coluna, $operador, $valor);
-                }
-            }
+            $modeloRepository->filtrarRegistros($request->filtro);
         }
 
-        $modelos = $modelos->get();
-
-        return response()->json($modelos);
+        return response()->json($modeloRepository->getResult());
     }
 
     /**
