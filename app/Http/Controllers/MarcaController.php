@@ -28,11 +28,7 @@ class MarcaController extends Controller
     public function store(Request $request)
     {
 
-        try {
-            $request->validate($this->marca->rules(), $this->marca->feedback());
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['error' => $e->errors()], 422);
-        }
+        $request->validate( $this->marca->rules(), $this->marca->feedback());
 
         $exists = $this->marca->where('nome', $request->nome)->exists();
 
@@ -67,20 +63,35 @@ class MarcaController extends Controller
      */
     public function update(Request $request, int $id)
     {  
-        try {
-            $request->validate($this->marca->rules(), $this->marca->feedback());
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['error' => $e->errors()], 422);
-        }
-
         $marca = $this->marca->find($id);
 
         if (!$marca) {
             return response()->json(['error' => 'Marca não encontrada.'], 404);
         }
 
-        $marca->nome = $request->nome;
-        $marca->imagem = $request->imagem;
+        if ($request->isMethod('patch')) {
+            // Regras dinâmicas para o método PATCH
+            $regrasDinamicas = array();
+
+            foreach ($this->marca->rules() as $field => $rule) {
+                if ($request->has($field)) {
+                    $regrasDinamicas[$field] = $rule;
+                }
+            }
+            // Validação das regras dinâmicas, apenas os parâmetros que tem no request
+            if (!empty($regrasDinamicas)) {
+                $request->validate($regrasDinamicas, $this->marca->feedback());
+
+                // Preenche os atributos do modelo $marca apenas com os dados do request que correspondem às chaves definidas em $regrasDinamicas
+                $marca->fill($request->only(array_keys($regrasDinamicas)));
+            } else {
+                return response()->json(['error' => 'Nenhum campo para atualizar.'], 422);
+            }
+
+        } else {
+            $request->validate($this->marca->rules(), $this->marca->feedback());
+        }
+
         $marca->save();
 
         return response()->json($marca, 200);

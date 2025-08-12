@@ -17,16 +17,25 @@ class Marca extends Model
     public function rules(): array
     {
         return [
-            'nome' => 'required|string|max:255',
+            'nome' => 'required|unique:marcas,nome,'.$this->id.'|string|max:50',
             'imagem' => 'required'
         ];
+
+        /**
+         * unique
+         * 1)tabela
+         * 2)nome da coluna
+         * 3)id do registro a ser ignorado (no caso de update)
+         * unique:marca,nome,{{id}}
+         */
     }
 
     public function feedback(): array
     {
         return [
             'required' => 'O campo :attribute é obrigatório.',
-            'nome.max' => 'O campo nome deve ter no máximo 255 caracteres.',
+            'nome.max' => 'O campo nome deve ter no máximo 50 caracteres.',
+            'nome.unique' => 'Já existe uma marca com este nome.',
             'imagem.required' => 'O campo imagem é obrigatório.'
         ];
     }
