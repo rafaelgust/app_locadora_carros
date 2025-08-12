@@ -43,12 +43,12 @@ class ModeloController extends Controller
         $filtroModelos = array('id', 'marca_id', 'nome', 'imagem', 'numero_portas', 'lugares', 'air_bag', 'abs');
         $filtroMarcas = array('nome', 'imagem');
 
-         $modelos = $this->modelo->with('marca:id,' . implode(',', $filtroMarcas))
-                ->select($filtroModelos);
+        $modelos = $this->modelo->newQuery();
 
         if($request->has('atributos_marca')) {
             $atributos_marca = $request->get('atributos_marca');
-            $atributos_marca = explode(',', $atributos_marca);
+            // array_map('trim', explode(',', $atributos)); evitar espaço
+            $atributos_marca = array_map('trim', explode(',', $atributos_marca));
 
             $filtroMarcas = $atributos_marca;
 
@@ -57,7 +57,8 @@ class ModeloController extends Controller
 
         if($request->has('atributos')) {
             $atributos = $request->get('atributos');
-            $atributos = explode(',', $atributos);
+            // array_map('trim', explode(',', $atributos)); evitar espaço
+            $atributos = array_map('trim',  explode(',', $atributos));
 
             $filtroModelos = $atributos;
             $modelos = $modelos->select($filtroModelos);
@@ -65,13 +66,13 @@ class ModeloController extends Controller
                 
         if($request->has('filtro')) {
             $completo = $request->filtro;
-            $separarMultiplosFiltros = explode(';', $completo);
+            $separarMultiplosFiltros = explode(';', string: $completo);
 
             foreach ($separarMultiplosFiltros as $filtro) {
                 $separar = explode(':', $filtro);
 
-                $coluna = $separar[0];
-                $operador = $separar[1];
+                $coluna = trim($separar[0]);
+                $operador = trim($separar[1]);
                 $valor = $separar[2];
 
                 if(!in_array($coluna, $filtroModelos)
