@@ -39,4 +39,9 @@ class Marca extends Model
             'imagem.required' => 'O campo imagem é obrigatório.'
         ];
     }
+
+    public function modelos()
+    {
+        return $this->hasMany(Modelo::class);
+    }
 }
