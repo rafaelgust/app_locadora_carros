@@ -43,7 +43,7 @@ class MarcaRepository {
             $operador = trim($separar[1]);
             $valor = $separar[2];
 
-            if(!in_array($coluna, $this->filtroModelos)
+            if(!in_array($coluna, $this->filtroMarcas)
                 OR !in_array($operador, ['=', '!=', '>', '<', '>=', '<=', 'like'])
                 OR is_null($valor)
             ) {
