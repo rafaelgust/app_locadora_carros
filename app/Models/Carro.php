@@ -40,7 +40,7 @@ class Carro extends Model
 
     public function modelo()
     {
-        return $this->belongsTo(Modelo::class);
+    return $this->belongsTo(Modelo::class, 'modelo_id', 'id');
     }
 
 }
