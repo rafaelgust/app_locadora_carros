@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Marca;
+use App\Repositories\MarcaRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -39,55 +40,22 @@ class MarcaController extends Controller
      */
     public function index(Request $request)
     {
-        $filtroMarcas = array('id', 'nome', 'imagem');
-        $filtroModelos = array('nome', 'imagem', 'numero_portas', 'lugares', 'air_bag', 'abs');
 
-        $marcas = $this->marca->newQuery();
-        // filled verifica se o atributo foi enviado na requisição e se não está vazio
+        $marcaRepository = new MarcaRepository($this->marca);
+
         if($request->filled('atributos_modelos')) {
-            $atributos_modelos = $request->get('atributos_modelos');
-            // array_map('trim', explode(',', $atributos)); evitar espaço
-            $atributos_modelos = array_map('trim', explode(',', $atributos_modelos));
-
-            $filtroModelos = $atributos_modelos;
-
-            $marcas = $marcas->with('modelos:marca_id,' . implode(',', $filtroModelos));
+            $marcaRepository->selectAtributosRegistrosRelacionados('modelos', 'marca_id', $request->atributos_modelos);
         }
 
         if($request->filled('atributos')) {
-            $atributos = $request->get('atributos');
-            // array_map('trim', explode(',', $atributos)); evitar espaço
-            $atributos = array_map('trim',  explode(',', $atributos));
-
-            $filtroMarcas = $atributos;
-            $marcas = $marcas->select($filtroMarcas);
+            $marcaRepository->selectAtributos($request->atributos);
         }
                 
         if($request->filled('filtro')) {
-            $completo = $request->filtro;
-            $separarMultiplosFiltros = explode(';', $completo);
-
-            foreach ($separarMultiplosFiltros as $filtro) {
-                $separar = explode(':', $filtro);
-
-                $coluna = trim($separar[0]);
-                $operador = trim($separar[1]);
-                $valor = $separar[2];
-
-                if(!in_array($coluna, $filtroModelos)
-                    OR !in_array($operador, ['=', '!=', '>', '<', '>=', '<=', 'like'])
-                    OR is_null($valor)
-                ) {
-                    return response()->json(['error' => 'Filtro inválido.'], 400);
-                } else {
-                    $marcas = $marcas->where($coluna, $operador, $valor);
-                }
-            }
+            $marcaRepository->filtrarRegistros($request->filtro);
         }
 
-        $marcas = $marcas->get();
-
-        return response()->json($marcas);
+        return response()->json($marcaRepository->getResult());
     }
 
 
