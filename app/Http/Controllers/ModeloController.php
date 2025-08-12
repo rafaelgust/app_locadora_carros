@@ -65,20 +65,24 @@ class ModeloController extends Controller
                 
         if($request->has('filtro')) {
             $completo = $request->filtro;
-            $separar = explode(':', $completo);
-            
-            $coluna = $separar[0] ?? null;
-            $operador = $separar[1] ?? null;
-            $valor = $separar[2] ?? null;
+            $separarMultiplosFiltros = explode(';', $completo);
 
-            if(!in_array($coluna, $filtroModelos)
-                OR !in_array($operador, ['=', '!=', '>', '<', '>=', '<=', 'like'])
-                OR is_null($valor)
-            ) {
-                return response()->json(['error' => 'Filtro inválido.'], 400);
+            foreach ($separarMultiplosFiltros as $filtro) {
+                $separar = explode(':', $filtro);
+
+                $coluna = $separar[0];
+                $operador = $separar[1];
+                $valor = $separar[2];
+
+                if(!in_array($coluna, $filtroModelos)
+                    OR !in_array($operador, ['=', '!=', '>', '<', '>=', '<=', 'like'])
+                    OR is_null($valor)
+                ) {
+                    return response()->json(['error' => 'Filtro inválido.'], 400);
+                } else {
+                    $modelos = $modelos->where($coluna, $operador, $valor);
+                }
             }
-
-            $modelos = $modelos->where($coluna, $operador, $valor);
         }
 
         $modelos = $modelos->get();
