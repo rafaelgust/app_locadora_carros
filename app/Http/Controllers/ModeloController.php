@@ -40,30 +40,28 @@ class ModeloController extends Controller
      */
     public function index(Request $request)
     {
+        $filtroModelos = array('id', 'marca_id', 'nome', 'imagem', 'numero_portas', 'lugares', 'air_bag', 'abs');
+        $filtroMarcas = array('nome', 'imagem');
+
         if($request->has('atributos')) {
             $atributos = $request->get('atributos');
             $atributos = explode(',', $atributos);
 
+            $filtroModelos = $atributos;
+        }
+
+        if($request->has('atributos_marca')) {
             $atributos_marca = $request->get('atributos_marca');
             $atributos_marca = explode(',', $atributos_marca);
 
-            return $this->modelo->with('marca:id,' . implode(',', $atributos_marca))
-                ->select($atributos)
-                ->get();
-
-        // /api/modelo?atributos=id,nome,marca_id
-
-        // /api/modelo?atributos=id,nome,marca_id&atributos_marca=nome
+            $filtroMarcas = $atributos_marca;
         }
 
-        $modelo = $this->modelo::with('marca')
-            ->select([
-                'id', 'nome', 'imagem', 'marca_id',
-                'numero_portas', 'lugares', 'air_bag', 'abs'
-            ])
-            ->get();
+        $modelos = $this->modelo->with('marca:id,' . implode(',', $filtroMarcas))
+                ->select($filtroModelos)
+                ->get();
 
-        return response()->json($modelo);
+       return response()->json($modelos);
     }
 
     /**
@@ -96,17 +94,33 @@ class ModeloController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+    public function show(Request $request, int $id)
     {
-        $modelo = $this->modelo::with('marca')->find($id)
-            ->only(
-                [
-                    'id', 'nome', 'imagem', 'marca',
-                    'numero_portas', 'lugares', 'air_bag', 'abs'
-                ]);
+        $filtroModelos = array('id', 'marca_id', 'nome', 'imagem', 'numero_portas', 'lugares', 'air_bag', 'abs');
+        $filtroMarcas = array('nome', 'imagem');
+
+        if($request->has('atributos')) {
+            $atributos = $request->get('atributos');
+            $atributos = explode(',', $atributos);
+
+            $filtroModelos = $atributos;
+        }
+
+        if($request->has('atributos_marca')) {
+            $atributos_marca = $request->get('atributos_marca');
+            $atributos_marca = explode(',', $atributos_marca);
+
+            $filtroMarcas = $atributos_marca;
+        }
+
+        $modelo = $this->modelo->with('marca:id,' . implode(',', $filtroMarcas))
+                ->select($filtroModelos)
+                ->find($id);
+        
         if (!$modelo) {
             return response()->json(['error' => 'Modelo não encontrado.'], 404);
         }
+
         return response()->json($modelo, 200);
     }
 
