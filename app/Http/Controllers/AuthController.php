@@ -23,11 +23,14 @@ class AuthController extends Controller
     }
 
     public function logout(){
-        return 'logout';
+       auth('api')->logout();
+       return response()->json(['message' => 'Logout realizado com sucesso.']);
     }
 
     public function refresh(){
-        return 'refresh';
+        // Use JWTAuth facade for token refresh if using tymon/jwt-auth
+        $token = \Tymon\JWTAuth\Facades\JWTAuth::parseToken()->refresh();
+        return response()->json(['token' => $token]);
     }
 
     public function me(){
