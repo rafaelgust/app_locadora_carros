@@ -15,7 +15,7 @@ class AuthController extends Controller
 
         if ($token) {
             return response()->json(['token' => $token]);
-        }
+        }   
 
         return response()->json(['error' => 'Usuário ou senha inválido!'], 403);
         // 401 = Não autorizado
@@ -31,6 +31,6 @@ class AuthController extends Controller
     }
 
     public function me(){
-        return 'me';
+        return response()->json(auth('api')->user());
     }
 }
