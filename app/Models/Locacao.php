@@ -45,13 +45,10 @@ class Locacao extends Model
             'data_inicio_periodo.date' => 'O campo data de início deve ser uma data válida.',
             'data_final_previsto_periodo.date' => 'O campo data final previsto deve ser uma data válida.',
             'data_final_realizado_periodo.date' => 'O campo data final realizado deve ser uma data válida.',
-            'valor_diaria.required' => 'O campo valor da diária é obrigatório.',
             'valor_diaria.numeric' => 'O campo valor da diária deve ser um número.',
             'valor_diaria.min' => 'O campo valor da diária deve ser pelo menos 0.',
-            'km_inicial.required' => 'O campo km inicial é obrigatório.',
             'km_inicial.integer' => 'O campo km inicial deve ser um número inteiro.',
             'km_inicial.min' => 'O campo km inicial deve ser pelo menos 0.',
-            'km_final.required' => 'O campo km final é obrigatório.',
             'km_final.integer' => 'O campo km final deve ser um número inteiro.',
             'km_final.min' => 'O campo km final deve ser pelo menos 0.'
         ];
