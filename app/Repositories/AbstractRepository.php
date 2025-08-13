@@ -66,6 +66,10 @@ abstract class AbstractRepository {
         }
     }
 
+    public function findById($id){
+        return $this->model->find($id);
+    }
+
     public function getResult(){
         return $this->model->get();
     }

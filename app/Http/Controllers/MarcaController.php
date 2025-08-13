@@ -45,6 +45,8 @@ class MarcaController extends Controller
 
         if($request->filled('atributos_modelos')) {
             $marcaRepository->selectAtributosRegistrosRelacionados('modelos', 'marca_id', $request->atributos_modelos);
+        } else {
+            $marcaRepository->selectAtributosRegistrosRelacionados('modelos', 'marca_id');
         }
 
         if($request->filled('atributos')) {
@@ -85,13 +87,27 @@ class MarcaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+    public function show(Request $request, int $id)
     {
-        $marca = $this->marca->with('modelos')
-            ->select(['id', 'nome', 'imagem'])
-            ->find($id);
+        $marcaRepository = new MarcaRepository($this->marca);
 
-        if (!$marca) {
+        if($request->filled('atributos_modelos')) {
+            $marcaRepository->selectAtributosRegistrosRelacionados('modelos', 'marca_id', $request->atributos_modelos);
+        } else {
+            $marcaRepository->selectAtributosRegistrosRelacionados('modelos', 'marca_id');
+        }
+
+        if($request->filled('atributos')) {
+            $marcaRepository->selectAtributos($request->atributos);
+        }
+                
+        if($request->filled('filtro')) {
+            $marcaRepository->filtrarRegistros($request->filtro);
+        }
+
+        $marca = $marcaRepository->findById($id);
+
+        if(!$marca) {
             return response()->json(['error' => 'Marca não encontrada.'], 404);
         }
 

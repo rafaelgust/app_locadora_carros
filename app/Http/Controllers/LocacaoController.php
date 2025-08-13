@@ -70,40 +70,35 @@ class LocacaoController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $filtroLocacoes = $this->locacao->getFillable();
-        $filtroCliente = [];
-        $filtroCarro = [];
+        $locacaoRepository = new LocacaoRepository($this->locacao);
 
-        if ($request->has('atributos')) {
-            $atributos = explode(',', $request->get('atributos'));
-            $filtroLocacoes = $atributos;
+        if($request->filled('atributos_cliente')) {
+            $locacaoRepository->selectAtributosRegistrosRelacionados('cliente', 'id', $request->atributos_cliente);
+        } else {
+            $locacaoRepository->selectAtributosRegistrosRelacionados('cliente', 'id');
         }
 
-        if ($request->has('atributo_cliente')) {
-            $atributo_cliente = explode(',', $request->get('atributo_cliente'));
-            $filtroCliente = $atributo_cliente;
+        if($request->filled('atributos_carro')) {
+            $locacaoRepository->selectAtributosRegistrosRelacionados('carro', 'id', $request->atributos_carro);
+        } else {
+            $locacaoRepository->selectAtributosRegistrosRelacionados('carro', 'id');
         }
 
-        if ($request->has('atributo_carro')) {
-            $atributo_carro = explode(',', $request->get('atributo_carro'));
-            $filtroCarro = $atributo_carro;
+        if($request->filled('atributos')) {
+            $locacaoRepository->selectAtributos($request->atributos);
+        }
+                
+        if($request->filled('filtro')) {
+            $locacaoRepository->filtrarRegistros($request->filtro);
         }
 
-        $locacao = $this->locacao->with(['cliente' => function($query) use ($filtroCliente) {
-            if (!empty($filtroCliente)) {
-                $query->select($filtroCliente);
-            }
-        }, 'carro' => function($query) use ($filtroCarro) {
-            if (!empty($filtroCarro)) {
-                $query->select($filtroCarro);
-            }
-        }])->select($filtroLocacoes)->find($id);
+        $locacao = $locacaoRepository->findById($id);
 
-        if (!$locacao) {
+        if(!$locacao) {
             return response()->json(['error' => 'Locação não encontrada.'], 404);
         }
 
-        return response()->json($locacao, 200);
+        return response()->json($locacao);
     }
 
     /**

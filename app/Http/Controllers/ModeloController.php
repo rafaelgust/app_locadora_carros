@@ -92,27 +92,24 @@ class ModeloController extends Controller
      */
     public function show(Request $request, int $id)
     {
-        $filtroModelos = array('id', 'marca_id', 'nome', 'imagem', 'numero_portas', 'lugares', 'air_bag', 'abs');
-        $filtroMarcas = array('nome', 'imagem');
+        $modeloRepository = new ModeloRepository($this->modelo);
 
-        if($request->has('atributos')) {
-            $atributos = $request->get('atributos');
-            $atributos = explode(',', $atributos);
-
-            $filtroModelos = $atributos;
+        if($request->filled('atributos_marca')) {
+            $modeloRepository->selectAtributosRegistrosRelacionados('marca', 'id', $request->atributos_marca);
+        } else {
+            $modeloRepository->selectAtributosRegistrosRelacionados('marca', 'id');
         }
 
-        if($request->has('atributos_marca')) {
-            $atributos_marca = $request->get('atributos_marca');
-            $atributos_marca = explode(',', $atributos_marca);
-
-            $filtroMarcas = $atributos_marca;
+        if($request->filled('atributos')) {
+            $modeloRepository->selectAtributos($request->atributos);
+        }
+                
+        if($request->filled('filtro')) {
+            $modeloRepository->filtrarRegistros($request->filtro);
         }
 
-        $modelo = $this->modelo->with('marca:id,' . implode(',', $filtroMarcas))
-                ->select($filtroModelos)
-                ->find($id);
-        
+        $modelo = $modeloRepository->findById($id);
+
         if (!$modelo) {
             return response()->json(['error' => 'Modelo não encontrado.'], 404);
         }

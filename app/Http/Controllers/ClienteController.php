@@ -59,30 +59,29 @@ class ClienteController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $filtroClientes = $this->cliente->getFillable();
-        $filtroLocacoes = [];
+        $clienteRepository = new ClientRepository($this->cliente);
 
-        if ($request->has('atributos')) {
-            $atributos = explode(',', $request->get('atributos'));
-            $filtroClientes = $atributos;
+        if($request->filled('atributos_locacoes')) {
+            $clienteRepository->selectAtributosRegistrosRelacionados('locacoes', 'id', $request->atributos_locacoes);
+        } else {
+            $clienteRepository->selectAtributosRegistrosRelacionados('locacoes', 'id');
         }
 
-        if ($request->has('atributo_locacoes')) {
-            $atributo_locacoes = explode(',', $request->get('atributo_locacoes'));
-            $filtroLocacoes = $atributo_locacoes;
+        if($request->filled('atributos')) {
+            $clienteRepository->selectAtributos($request->atributos);
+        }
+                
+        if($request->filled('filtro')) {
+            $clienteRepository->filtrarRegistros($request->filtro);
         }
 
-        $cliente = $this->cliente->with(['locacoes' => function($query) use ($filtroLocacoes) {
-            if (!empty($filtroLocacoes)) {
-                $query->select($filtroLocacoes);
-            }
-        }])->select($filtroClientes)->find($id);
+        $cliente = $clienteRepository->findById($id);
 
-        if (!$cliente) {
+        if(!$cliente) {
             return response()->json(['error' => 'Cliente não encontrado.'], 404);
         }
 
-        return response()->json($cliente, 200);
+        return response()->json($cliente);
     }
 
     /**

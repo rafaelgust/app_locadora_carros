@@ -62,32 +62,29 @@ class CarroController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $filtroCarros = $this->carro->getFillable();
-        $filtroModelos = [];
+        $carroRepository = new CarroRepository($this->carro);
 
-        if($request->has('atributos')) {
-            $atributos = $request->get('atributos');
-            $atributos = explode(',', $atributos);
-
-            $filtroCarros = $atributos;
+        if($request->filled('atributo_modelo')) {
+            $carroRepository->selectAtributosRegistrosRelacionados('modelo', 'id', $request->atributo_modelo);
+        } else {
+            $carroRepository->selectAtributosRegistrosRelacionados('modelo', 'id');
         }
 
-        if($request->has('atributos_marca')) {
-            $atributos_marca = $request->get('atributos_marca');
-            $atributos_marca = explode(',', $atributos_marca);
-
-            $filtroModelos = $atributos_marca;
+        if($request->filled('atributos')) {
+            $carroRepository->selectAtributos($request->atributos);
+        }
+                
+        if($request->filled('filtro')) {
+            $carroRepository->filtrarRegistros($request->filtro);
         }
 
-        $carro = $this->carro->with('modelo:id,' . implode(',', $filtroModelos))
-                ->select($filtroCarros)
-                ->find($id);
+        $carro = $carroRepository->findById($id);
 
-        if (!$carro) {
+        if(!$carro) {
             return response()->json(['error' => 'Carro não encontrado.'], 404);
         }
 
-        return response()->json($carro, 200);
+        return response()->json($carro);
     }
 
     /**
